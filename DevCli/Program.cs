@@ -1,14 +1,23 @@
-﻿using System.CommandLine;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
-var root = new RootCommand();
+namespace DevCli;
 
-var command = new Command("guid", "Generate a new GUID");
-
-command.SetHandler(_ =>
+public static class Program
 {
-    Console.WriteLine(Guid.NewGuid());
-});
+    public static async Task Main(string[] args)
+    {
+        var configuration = new ConfigurationManager();
+        configuration.AddJsonFile("appsettings.json", optional: false);
+        configuration.AddEnvironmentVariables();
 
-root.AddCommand(command);
-
-return await root.InvokeAsync(args);
+        var services = new ServiceCollection();
+        services.AddSingleton<IConfiguration>(configuration);
+        services.AddSingleton<Application>();
+        services.AddTransient<ICommand, GuidCommand>();
+        services.AddTransient<ICommand, IpCommand>();
+        var provider = services.BuildServiceProvider();
+        var app = provider.GetRequiredService<Application>();
+        await app.RunAsync(args);
+    }
+}

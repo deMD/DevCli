@@ -28,8 +28,8 @@ public class CliTestsBase
         process.Start();
         
         using var output = process.StandardOutput;
-        var readOutput = output.ReadLine();
+        var readOutput = output.ReadToEnd();
         process.WaitForExit();
-        return readOutput;
+        return readOutput.Trim();
     }
 }
